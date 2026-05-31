@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstimatePro v2 - Professional Winter Construction Estimator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+            line-height: 1.6;
+        }
+        .container { max-width: 1800px; margin: 0 auto; padding: 2rem; }
+        .header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #06b6d4; }
+        h1 { font-size: 32px; font-weight: 600; margin-bottom: 0.5rem; color: #1f2937; }
+        h2 { font-size: 18px; font-weight: 600; margin: 1.5rem 0 1rem; }
+        .subtitle { font-size: 14px; color: #6b7280; }
+        .tabs { display: flex; gap: 0; margin: 2rem 0; border-bottom: 1px solid #e5e7eb; }
+        .tab { padding: 1rem 1.5rem; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 500; color: #6b7280; transition: all 0.2s; }
+        .tab.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+        .hidden { display: none !important; }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 1.5rem 0; }
+        .metric-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; }
+        .metric-label { font-size: 11px; color: #6b7280; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .metric-value { font-size: 20px; font-weight: 600; color: #06b6d4; }
+        .section { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { padding: 0.75rem; text-align: left; font-weight: 600; background: #1f2937; color: white; border: none; }
+        td { padding: 0.75rem; border-bottom: 1px solid #e5e7eb; }
+        tr:hover { background: #f9fafb; }
+        input, select { width: 100%; padding: 0.4rem; border: 0.5px solid #d1d5db; border-radius: 4px; font-size: 12px; font-family: inherit; }
+        input:focus, select:focus { outline: none; border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1); }
+        .cost-cell-base { color: #111827; }
+        .cost-cell-adj { color: #f97316; font-weight: 500; }
+        .cost-cell-total { color: #06b6d4; font-weight: 600; background: #f0f9fa; }
+        button { background: white; border: 1px solid #d1d5db; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; font-family: inherit; }
+        button:hover { border-color: #9ca3af; background: #f3f4f6; }
+        button.primary { background: #06b6d4; color: white; border: none; }
+        button.primary:hover { background: #0891b2; }
+        button.danger { background: #ef4444; color: white; border: none; padding: 0.25rem 0.5rem; font-size: 11px; }
+        button.danger:hover { background: #dc2626; }
+        button.secondary { background: #8b5cf6; color: white; border: none; }
+        button.secondary:hover { background: #7c3aed; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+        .form-group label { font-size: 12px; font-weight: 500; color: #374151; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .division-section { margin-bottom: 1.5rem; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+        .division-header { background: #f3f4f6; padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid #e5e7eb; transition: all 0.2s; }
+        .division-header:hover { background: #e5e7eb; }
+        .division-title { font-weight: 600; color: #1f2937; flex: 1; }
+        .division-total { color: #06b6d4; font-size: 14px; font-weight: 600; margin-right: 1rem; }
+        .division-toggle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-weight: 600; color: #06b6d4; }
+        .division-content { display: none; padding: 1rem; background: white; }
+        .division-content.open { display: block; }
+        .params-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .param-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; }
+        .param-label { font-size: 12px; color: #6b7280; font-weight: 500; margin-bottom: 0.5rem; }
+        .param-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-family: inherit; }
+        .summary-box { background: #f0f9fa; border: 1px solid #06b6d4; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #d1d5db; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: #6b7280; font-size: 13px; }
+        .summary-value { font-weight: 600; color: #1f2937; font-size: 14px; }
+        .summary-total { background: #06b6d4; color: white; padding: 1rem; border-radius: 8px; font-weight: 600; font-size: 16px; }
+        .back-btn { padding: 0.5rem 1rem; background: transparent; border: none; color: #6b7280; cursor: pointer; font-size: 14px; margin-bottom: 1rem; }
+        .back-btn:hover { color: #111827; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; }
+        .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; }
+        .modal-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; margin-bottom: 1rem; font-family: inherit; }
+        .modal-buttons { display: flex; gap: 8px; }
+        .modal-buttons button { flex: 1; }
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .project-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: all 0.2s; }
+        .project-card:hover { border-color: #06b6d4; box-shadow: 0 4px 6px rgba(6, 182, 212, 0.1); }
+        .project-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 0.5rem; }
+        .project-meta { font-size: 12px; color: #6b7280; margin-bottom: 1rem; }
+        .num-right { text-align: right; }
+        .action-buttons { display: flex; gap: 8px; margin-top: 1rem; }
+        @media print {
+            body { background: white; }
+            .tabs, button, input, select, .back-btn { display: none; }
+            .container { padding: 0; max-width: 100%; }
+            .section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        const app = {
+            state: {
+                view: 'projects',
+                projects: JSON.parse(localStorage.getItem('estimateProjects') || '[]'),
+                selectedProjectId: null,
+                newProjectName: '',
+                showNewModal: false,
+                expandedDivisions: {}
+            },
+
+            CSI_DIVISIONS: [
+                { code: '01', name: 'General Requirements', trade: 'General' },
+                { code: '03', name: 'Concrete', trade: 'Concrete' },
+                { code: '04', name: 'Masonry', trade: 'Masonry' },
+                { code: '05', name: 'Steel', trade: 'Steel' },
+                { code: '06', name: 'Carpentry', trade: 'Carpentry' },
+                { code: '07', name: 'Roofing', trade: 'Roofing' },
+                { code: '08', name: 'Openings', trade: 'Openings' },
+                { code: '09', name: 'Finishes', trade: 'Finishes' },
+                { code: '21', name: 'Fire Protection', trade: 'Fire Protection' },
+                { code: '22', name: 'Plumbing', trade: 'Plumbing' },
+                { code: '23', name: 'HVAC', trade: 'HVAC' },
+                { code: '26', name: 'Electrical', trade: 'Electrical' },
+                { code: '27', name: 'Data/Comms', trade: 'Data/Comms' },
+                { code: '32', name: 'Site Work', trade: 'Site Work' }
+            ],
+
+            formatCurrency: (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n),
+
+            saveProjects: function() {
+                localStorage.setItem('estimateProjects', JSON.stringify(this.state.projects));
+            },
+
+            createProject: function(isExample = false) {
+                const proj = {
+                    id: Date.now(),
+                    name: isExample ? 'Example - Downtown Office Tower' : this.state.newProjectName,
+                    created: new Date().toLocaleDateString(),
+                    lineItems: isExample ? this.getExampleLineItems() : [],
+                    projectParams: {
+                        startDate: new Date().toISOString().split('T')[0],
+                        duration: 180,
+                        description: isExample ? 'Downtown Office Complex - Phase 1' : ''
+                    },
+                    winterParams: {
+                        productivityLoss: 15,
+                        laborPremium: 10,
+                        materialIncrease: 5,
+                        equipmentDowntime: 8,
+                        timelineExtension: 10,
+                        contingency: 8
+                    },
+                    siteSetupCosts: {
+                        heating: isExample ? 25000 : 0,
+                        accessPrep: isExample ? 15000 : 0,
+                        snowManagement: isExample ? 20000 : 0
+                    }
+                };
+                this.state.projects.push(proj);
+                this.saveProjects();
+                if (!isExample) {
+                    this.state.newProjectName = '';
+                    this.state.showNewModal = false;
+                }
+                this.state.selectedProjectId = proj.id;
+                this.state.view = 'summary';
+                this.render();
+            },
+
+            getExampleLineItems: function() {
+                return [
+                    { id: 1, csi: '01', description: 'Project Management (12 months)', unit: 'months', qty: 12, unitCost: 25000, winterFactor: 0, notes: '' },
+                    { id: 2, csi: '01', description: 'Insurance & Bonds', unit: 'LS', qty: 1, unitCost: 150000, winterFactor: 0, notes: '' },
+                    { id: 3, csi: '03', description: 'Foundation Excavation & Prep', unit: 'CY', qty: 8500, unitCost: 45, winterFactor: 20, notes: '' },
+                    { id: 4, csi: '03', description: 'Structural Concrete - Floors', unit: 'CY', qty: 12000, unitCost: 850, winterFactor: 15, notes: '' },
+                    { id: 5, csi: '04', description: 'Exterior Brick Veneer', unit: 'SF', qty: 45000, unitCost: 18, winterFactor: 10, notes: '' },
+                    { id: 6, csi: '05', description: 'Structural Steel Frame', unit: 'Tons', qty: 850, unitCost: 2500, winterFactor: 12, notes: '' },
+                    { id: 7, csi: '06', description: 'Wood Framing & Blocking', unit: 'SF', qty: 125000, unitCost: 3.5, winterFactor: 18, notes: '' },
+                    { id: 8, csi: '07', description: 'EPDM Roof System', unit: 'SF', qty: 85000, unitCost: 12, winterFactor: 5, notes: '' },
+                    { id: 9, csi: '08', description: 'Exterior Windows & Glass', unit: 'SF', qty: 120000, unitCost: 65, winterFactor: 0, notes: '' },
+                    { id: 10, csi: '08', description: 'Doors & Hardware', unit: 'EA', qty: 450, unitCost: 3500, winterFactor: 10, notes: '' },
+                    { id: 11, csi: '09', description: 'Interior Drywall & Taping', unit: 'SF', qty: 850000, unitCost: 1.85, winterFactor: 20, notes: '' },
+                    { id: 12, csi: '09', description: 'Flooring - Carpet & Tile', unit: 'SF', qty: 750000, unitCost: 4.25, winterFactor: 10, notes: '' },
+                    { id: 13, csi: '09', description: 'Interior Paint', unit: 'SF', qty: 850000, unitCost: 1.25, winterFactor: 15, notes: '' },
+                    { id: 14, csi: '21', description: 'Sprinkler System', unit: 'SF', qty: 325000, unitCost: 2.5, winterFactor: 8, notes: '' },
+                    { id: 15, csi: '22', description: 'Plumbing Rough-in & Fixtures', unit: 'FU', qty: 1200, unitCost: 450, winterFactor: 12, notes: '' },
+                    { id: 16, csi: '23', description: 'HVAC Systems & Controls', unit: 'SF', qty: 325000, unitCost: 8.5, winterFactor: 18, notes: '' },
+                    { id: 17, csi: '26', description: 'Electrical Systems & Distribution', unit: 'SF', qty: 325000, unitCost: 12.75, winterFactor: 10, notes: '' },
+                    { id: 18, csi: '27', description: 'Data & Communications Systems', unit: 'SF', qty: 325000, unitCost: 4.25, winterFactor: 5, notes: '' },
+                    { id: 19, csi: '32', description: 'Site Preparation & Utilities', unit: 'LS', qty: 1, unitCost: 850000, winterFactor: 25, notes: '' }
+                ];
+            },
+
+            deleteProject: function(id) {
+                this.state.projects = this.state.projects.filter(p => p.id !== id);
+                this.saveProjects();
+                if (this.state.selectedProjectId === id) {
+                    this.state.selectedProjectId = null;
+                    this.state.view = 'projects';
+                }
+                this.render();
+            },
+
+            getCurrentProject: function() {
+                return this.state.projects.find(p => p.id === this.state.selectedProjectId);
+            },
+
+            addLineItem: function(csiCode) {
+                const proj = this.getCurrentProject();
+                if (!proj) return;
+                proj.lineItems.push({
+                    id: Date.now(),
+                    csi: csiCode,
+                    description: '',
+                    unit: 'LS',
+                    qty: 0,
+                    unitCost: 0,
+                    winterFactor: 0,
+                    notes: ''
+                });
+                this.saveProjects();
+                this.render();
+            },
+
+            updateLineItem: function(itemId, field, value) {
+                const proj = this.getCurrentProject();
+                if (!proj) return;
+                const item = proj.lineItems.find(i => i.id === itemId);
+                if (item) {
+                    if (['qty', 'unitCost', 'winterFactor'].includes(field)) {
+                        item[field] = parseFloat(value) || 0;
+                    } else {
+                        item[field] = value;
+                    }
+                    this.saveProjects();
+                }
+            },
+
+            deleteLineItem: function(itemId) {
+                const proj = this.getCurrentProject();
+                if (!proj) return;
+                proj.lineItems = proj.lineItems.filter(i => i.id !== itemId);
+                this.saveProjects();
+                this.render();
+            },
+
+            updateWinterParam: function(param, value) {
+                const proj = this.getCurrentProject();
+                if (!proj) return;
+                proj.winterParams[param] = parseFloat(value) || 0;
+                this.saveProjects();
+                this.render();
+            },
+
+            updateSiteSetup: function(param, value) {
+                const proj = this.getCurrentProject();
+                if (!proj) return;
+                proj.siteSetupCosts[param] = parseFloat(value) || 0;
+                this.saveProjects();
+                this.render();
+            },
+
+            updateProjectParam: function(param, value) {
+                const proj = this.getCurrentProject();
+                if (!proj) return;
+                proj.projectParams[param] = value;
+                this.saveProjects();
+                this.render();
+            },
+
+            toggleDivision: function(divisionCode) {
+                this.state.expandedDivisions[divisionCode] = !this.state.expandedDivisions[divisionCode];
+                this.render();
+            },
+
+            calculateLineItemCost: function(item, proj) {
+                const baseCost = item.qty * item.unitCost;
+                const lineWinterAdj = baseCost * (item.winterFactor / 100);
+                const lineTotal = baseCost + lineWinterAdj;
+                return { baseCost, lineWinterAdj, lineTotal };
+            },
+
+            calculateProjectCosts: function() {
+                const proj = this.getCurrentProject();
+                if (!proj) return { byDivision: {}, baseCosts: 0, lineWinterAdj: 0, projectWinterAdj: 0, siteSetup: 0, contingency: 0, total: 0 };
+
+                const byDivision = {};
+                let baseCosts = 0;
+                let lineWinterAdj = 0;
+
+                proj.lineItems.forEach(item => {
+                    const divCode = item.csi;
+                    const divData = this.CSI_DIVISIONS.find(d => d.code === divCode);
+                    const divisionName = divData ? divData.name : 'Other';
+
+                    const costs = this.calculateLineItemCost(item, proj);
+                    baseCosts += costs.baseCost;
+                    lineWinterAdj += costs.lineWinterAdj;
+
+                    if (!byDivision[divisionName]) {
+                        byDivision[divisionName] = { code: divCode, base: 0, lineAdj: 0, total: 0 };
+                    }
+                    byDivision[divisionName].base += costs.baseCost;
+                    byDivision[divisionName].lineAdj += costs.lineWinterAdj;
+                    byDivision[divisionName].total += costs.lineTotal;
+                });
+
+                const projectWinterAdj = 
+                    baseCosts * (proj.winterParams.productivityLoss / 100) +
+                    baseCosts * (proj.winterParams.laborPremium / 100) +
+                    baseCosts * (proj.winterParams.materialIncrease / 100) +
+                    baseCosts * (proj.winterParams.equipmentDowntime / 100);
+
+                const siteSetup = proj.siteSetupCosts.heating + proj.siteSetupCosts.accessPrep + proj.siteSetupCosts.snowManagement;
+                const contingency = baseCosts * (proj.winterParams.contingency / 100);
+                const total = baseCosts + lineWinterAdj + projectWinterAdj + siteSetup + contingency;
+
+                return { byDivision, baseCosts, lineWinterAdj, projectWinterAdj, siteSetup, contingency, total };
+            },
+
+            renderProjects: function() {
+                let html = `
+                    <div class="container">
+                        <div class="header">
+                            <h1>EstimatePro v2</h1>
+                            <p class="subtitle">Professional Winter Construction Estimating Software</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 style="margin: 0;">Projects</h2>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="primary" onclick="app.state.showNewModal = true; app.render();">+ New Project</button>
+                                <button class="secondary" onclick="app.createProject(true);">+ Load Example</button>
+                            </div>
+                        </div>
+                        <div class="metric-grid">
+                            <div class="metric-card">
+                                <div class="metric-label">Total Projects</div>
+                                <div class="metric-value">${this.state.projects.length}</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Portfolio Value</div>
+                                <div class="metric-value">${this.formatCurrency(this.state.projects.reduce((sum, p) => {
+                                    const proj = p;
+                                    let baseCosts = 0, lineWinterAdj = 0;
+                                    proj.lineItems.forEach(item => {
+                                        const itemBase = item.qty * item.unitCost;
+                                        baseCosts += itemBase;
+                                        lineWinterAdj += itemBase * (item.winterFactor / 100);
+                                    });
+                                    const projectWinterAdj = baseCosts * ((proj.winterParams.productivityLoss + proj.winterParams.laborPremium + proj.winterParams.materialIncrease + proj.winterParams.equipmentDowntime) / 100);
+                                    const siteSetup = proj.siteSetupCosts.heating + proj.siteSetupCosts.accessPrep + proj.siteSetupCosts.snowManagement;
+                                    const contingency = baseCosts * (proj.winterParams.contingency / 100);
+                                    return sum + baseCosts + lineWinterAdj + projectWinterAdj + siteSetup + contingency;
+                                }, 0))}</div>
+                            </div>
+                        </div>
+                        <div class="projects-grid">
+                `;
+
+                this.state.projects.forEach(proj => {
+                    let pBaseCosts = 0, pLineWinter = 0;
+                    proj.lineItems.forEach(item => {
+                        const itemBase = item.qty * item.unitCost;
+                        pBaseCosts += itemBase;
+                        pLineWinter += itemBase * (item.winterFactor / 100);
+                    });
+                    const pProjectWinter = pBaseCosts * ((proj.winterParams.productivityLoss + proj.winterParams.laborPremium + proj.winterParams.materialIncrease + proj.winterParams.equipmentDowntime) / 100);
+                    const pSiteSetup = proj.siteSetupCosts.heating + proj.siteSetupCosts.accessPrep + proj.siteSetupCosts.snowManagement;
+                    const pContingency = pBaseCosts * (proj.winterParams.contingency / 100);
+                    const pTotal = pBaseCosts + pLineWinter + pProjectWinter + pSiteSetup + pContingency;
+
+                    html += `
+                        <div class="project-card" onclick="app.state.selectedProjectId = ${proj.id}; app.state.view = 'summary'; app.render();">
+                            <h3>${proj.name}</h3>
+                            <div class="project-meta">Created ${proj.created} • ${proj.lineItems.length} line items</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 1rem;">
+                                <div>Base: ${this.formatCurrency(pBaseCosts)}</div>
+                                <div>Winter Impact: ${this.formatCurrency(pLineWinter + pProjectWinter)}</div>
+                            </div>
+                            <div style="font-size: 18px; font-weight: 600; color: #06b6d4; margin-bottom: 1rem;">Total: ${this.formatCurrency(pTotal)}</div>
+                            <button class="danger" onclick="event.stopPropagation(); app.deleteProject(${proj.id});" style="width: 100%;">Delete Project</button>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+
+                if (this.state.showNewModal) {
+                    html += `
+                        <div class="modal">
+                            <div class="modal-content">
+                                <h2 class="modal-title">Create New Project</h2>
+                                <input type="text" class="modal-input" placeholder="Project name" value="${this.state.newProjectName}"
+                                    onkeypress="if(event.key==='Enter') app.createProject();"
+                                    onchange="app.state.newProjectName = this.value;" autofocus>
+                                <div class="modal-buttons">
+                                    <button class="primary" onclick="app.createProject();">Create</button>
+                                    <button onclick="app.state.showNewModal = false; app.render();">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return html;
+            },
+
+            renderSummary: function() {
+                const proj = this.getCurrentProject();
+                if (!proj) return '<div>Project not found</div>';
+                const costs = this.calculateProjectCosts();
+
+                let html = `
+                    <div class="container">
+                        <button class="back-btn" onclick="app.state.view = 'projects'; app.render();">← Back to Projects</button>
+                        <div class="header">
+                            <h1>${proj.name}</h1>
+                            <p class="subtitle">Cost Summary & Winter Impact Analysis</p>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-bottom: 1rem;">
+                            <button class="primary" onclick="window.print();">🖨️ Print Report</button>
+                        </div>
+
+                        <div class="tabs">
+                            <div class="tab active" onclick="app.state.view = 'summary'; app.render();">Summary</div>
+                            <div class="tab" onclick="app.state.view = 'estimate'; app.render();">Line Items</div>
+                            <div class="tab" onclick="app.state.view = 'parameters'; app.render();">Winter Parameters</div>
+                        </div>
+
+                        <div class="metric-grid">
+                            <div class="metric-card">
+                                <div class="metric-label">Base Costs</div>
+                                <div class="metric-value">${this.formatCurrency(costs.baseCosts)}</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Line Winter Adj.</div>
+                                <div class="metric-value" style="color: #f97316;">${this.formatCurrency(costs.lineWinterAdj)}</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Project Winter Adj.</div>
+                                <div class="metric-value" style="color: #f97316;">${this.formatCurrency(costs.projectWinterAdj)}</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Project Total</div>
+                                <div class="metric-value" style="color: #06b6d4; font-size: 24px;">${this.formatCurrency(costs.total)}</div>
+                            </div>
+                        </div>
+
+                        <div class="summary-box">
+                            <div class="summary-row">
+                                <div class="summary-label">Base Costs</div>
+                                <div class="summary-value">${this.formatCurrency(costs.baseCosts)}</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Line Item Winter Adjustments</div>
+                                <div class="summary-value" style="color: #f97316;">${this.formatCurrency(costs.lineWinterAdj)}</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Project-Level Winter Adjustments</div>
+                                <div class="summary-value" style="color: #f97316;">${this.formatCurrency(costs.projectWinterAdj)}</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Site Setup Costs</div>
+                                <div class="summary-value" style="color: #a855f7;">${this.formatCurrency(costs.siteSetup)}</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Contingency (${proj.winterParams.contingency}%)</div>
+                                <div class="summary-value">${this.formatCurrency(costs.contingency)}</div>
+                            </div>
+                        </div>
+
+                        <div class="summary-total">Total Project Cost: ${this.formatCurrency(costs.total)}</div>
+
+                        <div class="section">
+                            <h2>Cost Breakdown by CSI Division</h2>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Division</th>
+                                        <th class="num-right">Base Cost</th>
+                                        <th class="num-right">Line Item Adj.</th>
+                                        <th class="num-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+                // Sort divisions by CSI code order
+                const sortedDivisions = this.CSI_DIVISIONS.filter(d => costs.byDivision[d.name]);
+                sortedDivisions.forEach(division => {
+                    const data = costs.byDivision[division.name];
+                    html += `
+                        <tr>
+                            <td>${division.code} - ${division.name}</td>
+                            <td class="num-right cost-cell-base">${this.formatCurrency(data.base)}</td>
+                            <td class="num-right cost-cell-adj">${this.formatCurrency(data.lineAdj)}</td>
+                            <td class="num-right cost-cell-total">${this.formatCurrency(data.total)}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                return html;
+            },
+
+            renderEstimate: function() {
+                const proj = this.getCurrentProject();
+                if (!proj) return '<div>Project not found</div>';
+
+                let html = `
+                    <div class="container">
+                        <button class="back-btn" onclick="app.state.view = 'projects'; app.render();">← Back to Projects</button>
+                        <div class="header">
+                            <h1>${proj.name}</h1>
+                            <p class="subtitle">Detailed Cost Estimate</p>
+                        </div>
+
+                        <div class="tabs">
+                            <div class="tab" onclick="app.state.view = 'summary'; app.render();">Summary</div>
+                            <div class="tab active" onclick="app.state.view = 'estimate'; app.render();">Line Items</div>
+                            <div class="tab" onclick="app.state.view = 'parameters'; app.render();">Winter Parameters</div>
+                        </div>
+                `;
+
+                this.CSI_DIVISIONS.forEach(division => {
+                    const itemsInDiv = proj.lineItems.filter(item => item.csi === division.code);
+                    const divisionCosts = this.calculateProjectCosts().byDivision[division.name];
+                    const isExpanded = this.state.expandedDivisions[division.code];
+
+                    html += `
+                        <div class="division-section">
+                            <div class="division-header" onclick="app.toggleDivision('${division.code}');">
+                                <div class="division-title">${division.code} - ${division.name}</div>
+                                <div class="division-total">${divisionCosts ? this.formatCurrency(divisionCosts.total) : '$0'}</div>
+                                <div class="division-toggle">${isExpanded ? '−' : '+'}</div>
+                            </div>
+                            <div class="division-content ${isExpanded ? 'open' : ''}">
+                                <div style="margin-bottom: 1rem;">
+                                    <button class="primary" onclick="app.addLineItem('${division.code}'); app.render();">+ Add Item to ${division.code}</button>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th style="width: 70px;">Unit</th>
+                                            <th style="width: 70px;">Qty</th>
+                                            <th style="width: 90px;">Unit Cost</th>
+                                            <th style="width: 100px;" class="num-right">Base Cost</th>
+                                            <th style="width: 80px;">Winter %</th>
+                                            <th style="width: 100px;" class="num-right">Winter Adj.</th>
+                                            <th style="width: 100px;" class="num-right">Total</th>
+                                            <th style="width: 40px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+
+                    if (itemsInDiv.length === 0) {
+                        html += `<tr><td colspan="9" style="text-align: center; color: #9ca3af; padding: 1.5rem;">No line items</td></tr>`;
+                    } else {
+                        itemsInDiv.forEach(item => {
+                            const itemCosts = this.calculateLineItemCost(item, proj);
+                            html += `
+                                <tr>
+                                    <td><input type="text" value="${item.description}" onchange="app.updateLineItem(${item.id}, 'description', this.value);"></td>
+                                    <td><input type="text" value="${item.unit}" onchange="app.updateLineItem(${item.id}, 'unit', this.value);" style="text-align: center;"></td>
+                                    <td><input type="number" value="${item.qty}" step="0.01" onchange="app.updateLineItem(${item.id}, 'qty', this.value); app.render();"></td>
+                                    <td><input type="number" value="${item.unitCost}" step="0.01" onchange="app.updateLineItem(${item.id}, 'unitCost', this.value); app.render();"></td>
+                                    <td class="num-right cost-cell-base">${this.formatCurrency(itemCosts.baseCost)}</td>
+                                    <td><input type="number" value="${item.winterFactor}" step="0.1" onchange="app.updateLineItem(${item.id}, 'winterFactor', this.value); app.render();" style="text-align: center;">%</td>
+                                    <td class="num-right cost-cell-adj">${this.formatCurrency(itemCosts.lineWinterAdj)}</td>
+                                    <td class="num-right cost-cell-total">${this.formatCurrency(itemCosts.lineTotal)}</td>
+                                    <td><button class="danger" onclick="app.deleteLineItem(${item.id});">×</button></td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    html += `</tbody></table></div></div>`;
+                });
+
+                html += `</div>`;
+                return html;
+            },
+
+            renderParameters: function() {
+                const proj = this.getCurrentProject();
+                if (!proj) return '<div>Project not found</div>';
+
+                let html = `
+                    <div class="container">
+                        <button class="back-btn" onclick="app.state.view = 'projects'; app.render();">← Back to Projects</button>
+                        <div class="header">
+                            <h1>${proj.name}</h1>
+                            <p class="subtitle">Winter Adjustment Parameters</p>
+                        </div>
+
+                        <div class="tabs">
+                            <div class="tab" onclick="app.state.view = 'summary'; app.render();">Summary</div>
+                            <div class="tab" onclick="app.state.view = 'estimate'; app.render();">Line Items</div>
+                            <div class="tab active" onclick="app.state.view = 'parameters'; app.render();">Winter Parameters</div>
+                        </div>
+
+                        <div class="section">
+                            <h2>Project Information</h2>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Start Date</label>
+                                    <input type="date" value="${proj.projectParams.startDate}" onchange="app.updateProjectParam('startDate', this.value);">
+                                </div>
+                                <div class="form-group">
+                                    <label>Estimated Duration (days)</label>
+                                    <input type="number" value="${proj.projectParams.duration}" onchange="app.updateProjectParam('duration', this.value);">
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <input type="text" value="${proj.projectParams.description}" onchange="app.updateProjectParam('description', this.value);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <h2>Winter Adjustment Factors (%)</h2>
+                            <p style="color: #6b7280; font-size: 13px; margin-bottom: 1rem;">These percentages are applied to BASE COSTS to calculate project-level winter adjustments.</p>
+                            <div class="params-grid">
+                                <div class="param-card">
+                                    <label class="param-label">Productivity Loss (%)</label>
+                                    <input type="number" step="0.1" class="param-input" value="${proj.winterParams.productivityLoss}" onchange="app.updateWinterParam('productivityLoss', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Weather delays, reduced work days</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Labor Rate Premium (%)</label>
+                                    <input type="number" step="0.1" class="param-input" value="${proj.winterParams.laborPremium}" onchange="app.updateWinterParam('laborPremium', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Overtime, hazard pay, shift premiums</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Material Cost Increase (%)</label>
+                                    <input type="number" step="0.1" class="param-input" value="${proj.winterParams.materialIncrease}" onchange="app.updateWinterParam('materialIncrease', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Seasonal pricing, transport costs</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Equipment Downtime (%)</label>
+                                    <input type="number" step="0.1" class="param-input" value="${proj.winterParams.equipmentDowntime}" onchange="app.updateWinterParam('equipmentDowntime', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Idle time due to weather</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Contingency Buffer (%)</label>
+                                    <input type="number" step="0.1" class="param-input" value="${proj.winterParams.contingency}" onchange="app.updateWinterParam('contingency', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Weather-related contingency reserve</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Timeline Extension (days)</label>
+                                    <input type="number" step="1" class="param-input" value="${proj.winterParams.timelineExtension}" onchange="app.updateWinterParam('timelineExtension', this.value);">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Additional project duration</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <h2>Site Setup Costs ($)</h2>
+                            <p style="color: #6b7280; font-size: 13px; margin-bottom: 1rem;">Fixed costs added directly to project total.</p>
+                            <div class="params-grid">
+                                <div class="param-card">
+                                    <label class="param-label">Heating & Facilities ($)</label>
+                                    <input type="number" step="100" class="param-input" value="${proj.siteSetupCosts.heating}" onchange="app.updateSiteSetup('heating', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Temporary heating, structures</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Access & Prep ($)</label>
+                                    <input type="number" step="100" class="param-input" value="${proj.siteSetupCosts.accessPrep}" onchange="app.updateSiteSetup('accessPrep', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Road prep, parking, staging</div>
+                                </div>
+                                <div class="param-card">
+                                    <label class="param-label">Snow Management ($)</label>
+                                    <input type="number" step="100" class="param-input" value="${proj.siteSetupCosts.snowManagement}" onchange="app.updateSiteSetup('snowManagement', this.value); app.render();">
+                                    <div style="font-size: 10px; color: #9ca3af; margin-top: 0.5rem;">Snow removal, de-icing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                return html;
+            },
+
+            render: function() {
+                let html = '';
+                if (this.state.view === 'projects') html = this.renderProjects();
+                else if (this.state.view === 'summary') html = this.renderSummary();
+                else if (this.state.view === 'estimate') html = this.renderEstimate();
+                else if (this.state.view === 'parameters') html = this.renderParameters();
+
+                document.getElementById('app').innerHTML = html;
+            }
+        };
+
+        app.render();
+    </script>
+</body>
+</html>
